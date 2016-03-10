@@ -105,9 +105,9 @@ def snapshot_prefix(args):
     return os.path.join(args.snapshot_dir, args.snapshot_prefix)
 
 
-def snapshot_at_iteration(iteration):
+def snapshot_at_iteration(iteration, args):
     """Get name for snapshot file."""
-    return '%s_iter_%d.caffemodel' % (snapshot_prefix(), iteration)
+    return '%s_iter_%d.caffemodel' % (snapshot_prefix(args), iteration)
 
 
 def miniplaces_solver(train_net_path, args, test_net_path=None):
@@ -379,7 +379,7 @@ def train_net(args, with_val_net=False):
     # Print accuracy for last iteration.
     solver.net.forward()
     disp_outputs(args.iters)
-    solver.net.save(snapshot_at_iteration(args.iters))
+    solver.net.save(snapshot_at_iteration(args.iters, args))
 
 
 def eval_net(split, n_k=5):
@@ -403,7 +403,7 @@ def eval_net(split, n_k=5):
         split_file = to_tempfile(
             ''.join('%s 0\n' % name for name in filenames))
     test_net_file = miniplaces_net(split_file, train=False, with_labels=False)
-    weights_file = snapshot_at_iteration(args.iters)
+    weights_file = snapshot_at_iteration(args.iters, args)
     net = caffe.Net(test_net_file, weights_file, caffe.TEST)
     top_k_predictions = np.zeros((len(filenames), n_k), dtype=np.int32)
     if known_labels:
