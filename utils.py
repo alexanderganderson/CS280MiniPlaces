@@ -7,9 +7,9 @@ import time
 import tempfile
 import argparse
 
-key = 'GLOG_minloglevel'
-if not os.environ.get(key, ''):
-    os.environ[key] = '3'
+# key = 'GLOG_minloglevel'
+# if not os.environ.get(key, ''):
+#     os.environ[key] = '3'
 
 import caffe
 from caffe.proto import caffe_pb2
@@ -228,8 +228,7 @@ def max_pool(bottom, ks, stride=1, train=False, cudnn=True):
 
 
 def minialexnet(data, labels=None, train=False,
-                param=[dict(lr_mult=1, decay_mult=1),
-                       dict(lr_mult=2, decay_mult=0)],
+                param=learned_param,
                 num_classes=100, with_labels=True):
     """
     Return a protobuf text file specifying a variant of AlexNet.
@@ -260,11 +259,19 @@ def minialexnet(data, labels=None, train=False,
     n.drop6 = layers.Dropout(n.relu6, in_place=True)
     n.fc7, n.relu7 = fc_relu(n.drop6, 1024, param=param)
     n.drop7 = layers.Dropout(n.relu7, in_place=True)
-    preds = n.fc8 = layers.InnerProduct(
+    n.fc8 = layers.InnerProduct(
         n.drop7, num_output=num_classes, param=param)
-    if not train:
+    top = n.fc8
+    return build_test_train(n, top, with_labels, labels)
+
+
+def build_test_train(n, top, train, with_labels, labels):
+    """Take in current netspec and top, and adds final layers."""
+    if train:
+        preds = top
+    else:
         # Compute the per-label probabilities at test/inference time.
-        preds = n.probs = layers.Softmax(n.fc8)
+        preds = n.probs = layers.Softmax(top)
     if with_labels:
         n.label = labels
         n.loss = layers.SoftmaxWithLoss(n.fc8, n.label)
