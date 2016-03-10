@@ -9,8 +9,8 @@ import argparse
 import sys
 
 tag = 'GLOG_minloglevel'
-if not os.environ.get(tag, ''):
-    os.environ[tag] = '3'
+# if not os.environ.get(tag, ''):
+os.environ[tag] = '3'
 
 import caffe
 from caffe.proto import caffe_pb2
