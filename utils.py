@@ -296,9 +296,9 @@ def add_alexnet(n, top, train=False, param=learned_param,
             print 'Dim after pooling {} is {}'.format(i, dim)
     sys.stdout.flush()
 
-    nh_ = [1024]
-    rlu_ = [True]
-    drp_ = [True]
+    nh_ = [1024, 1024]
+    rlu_ = [True, True]
+    drp_ = [True, True]
     for i, (nh, rlu, drp) in enumerate(zip(nh_, rlu_, drp_)):
         i += len(fsize_)
         top = fc = layers.InnerProduct(
@@ -314,10 +314,10 @@ def add_alexnet(n, top, train=False, param=learned_param,
         # n.fc6, n.relu6 = fc_relu(top, 1024, param=param)
         # n.drop6 = layers.Dropout(n.relu6, in_place=True)
 
-    n.fc7, n.relu7 = fc_relu(top, 1024, param=param)
-    n.drop7 = layers.Dropout(n.relu7, in_place=True)
+    # n.fc7, n.relu7 = fc_relu(top, 1024, param=param)
+    # n.drop7 = layers.Dropout(n.relu7, in_place=True)
     n.fc8 = layers.InnerProduct(
-        n.drop7, num_output=num_classes, param=param)
+        top, num_output=num_classes, param=param)
     top = n.fc8
     return top
 
