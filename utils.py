@@ -6,6 +6,7 @@ import os
 import time
 import tempfile
 import argparse
+import numpy as np
 import sys
 
 # tag = 'GLOG_minloglevel'
@@ -381,6 +382,64 @@ def train_net(args, with_val_net=False):
     solver.net.save(snapshot_at_iteration(args.iters))
 
 
+def eval_net(split, n_k=5):
+    """Evaluate the network for a given split."""
+    print 'Running evaluation for split:', split
+    filenames = []
+    labels = []
+    split_file = get_split(split)
+    with open(split_file, 'r') as f:
+        for line in f.readlines():
+            parts = line.split()
+            assert 1 <= len(parts) <= 2, 'malformed line'
+            filenames.append(parts[0])
+            if len(parts) > 1:
+                labels.append(int(parts[1]))
+    known_labels = (len(labels) > 0)
+    if known_labels:
+        assert len(labels) == len(filenames)
+    else:
+        # create file with 'dummy' labels (all 0s)
+        split_file = to_tempfile(
+            ''.join('%s 0\n' % name for name in filenames))
+    test_net_file = miniplaces_net(split_file, train=False, with_labels=False)
+    weights_file = snapshot_at_iteration(args.iters)
+    net = caffe.Net(test_net_file, weights_file, caffe.TEST)
+    top_k_predictions = np.zeros((len(filenames), n_k), dtype=np.int32)
+    if known_labels:
+        correct_label_probs = np.zeros(len(filenames))
+    offset = 0
+    while offset < len(filenames):
+        probs = net.forward()['probs']
+        for prob in probs:
+            top_k_predictions[offset] = (-prob).argsort()[:n_k]
+            if known_labels:
+                correct_label_probs[offset] = prob[labels[offset]]
+            offset += 1
+            if offset >= len(filenames):
+                break
+    if known_labels:
+        def accuracy_at_k(preds, labels, k):
+            assert len(preds) == len(labels)
+            num_correct = sum(l in p[:k] for p, l in zip(preds, labels))
+            return num_correct / len(preds)
+        for k in [1, n_k]:
+            accuracy = 100 * accuracy_at_k(top_k_predictions, labels, k)
+            print '\tAccuracy at %d = %4.2f%%' % (k, accuracy)
+        cross_ent_error = -np.log(correct_label_probs).mean()
+        print '\tSoftmax cross-entropy error = %.4f' % (cross_ent_error, )
+    else:
+        print 'Not computing accuracy; ground truth unknown for split:', split
+    filename = 'top_%d_predictions.%s.csv' % (n_k, split)
+    with open(filename, 'w') as f:
+        f.write(','.join(['image'] +
+                         ['label%d' % i for i in range(1, n_k + 1)]))
+        f.write('\n')
+        f.write(''.join('%s,%s\n' % (image, ','.join(str(p) for p in preds))
+                        for image, preds in zip(filenames, top_k_predictions)))
+    print 'Predictions for split %s dumped to: %s' % (split, filename)
+
+
 if __name__ == '__main__':
     args = parser.parse_args()
 
@@ -391,4 +450,8 @@ if __name__ == '__main__':
         caffe.set_mode_cpu()
 
     train_net(args)
-    pass
+    print '\nTraining complete. Evaluating...\n'
+    for split in ('train', 'val', 'test'):
+        eval_net(split)
+        print
+    print 'Evaluation complete.'
