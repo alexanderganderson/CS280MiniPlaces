@@ -244,6 +244,8 @@ def minialexnet(data, labels=None, train=False,
     n.data = data
     conv_kwargs = dict(param=param, train=train)
     top = n.data
+    dim = 96
+    print 'Input dim is {}'.format(dim)
 
     fsize_ = [11, 5, 3, 3, 3]
     nout_ = [96, 256, 384, 384, 256]
@@ -264,6 +266,8 @@ def minialexnet(data, labels=None, train=False,
         conv, relu = conv_relu(
             top, fsize, nout, stride=stride,
             pad=pad, group=group, **conv_kwargs)
+        dim = (dim - fsize + 1 + 2 * pad) / stride
+        print 'Dim after convolution = {}'.format(dim)
         setattr(n, 'conv{}'.format(i), conv)
         setattr(n, 'relu{}'.format(i), relu)
         top = relu
@@ -271,6 +275,8 @@ def minialexnet(data, labels=None, train=False,
             pl = max_pool(top, 3, stride=2, train=train)
             setattr(n, 'pool{}'.format(i), pl)
             top = pl
+            dim = (dim - 3 + 1) / 2
+            print 'Dim after pooling is {}'.format(dim)
 
     n.fc6, n.relu6 = fc_relu(top, 1024, param=param)
     n.drop6 = layers.Dropout(n.relu6, in_place=True)
