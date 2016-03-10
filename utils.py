@@ -10,6 +10,11 @@ from caffe.proto import caffe_pb2
 from caffe import layers
 from caffe import params
 
+key = 'GLOG_minloglevel'
+if not os.environ.get(key, ''):
+    os.environ[key] = '3'
+
+
 weight_param = dict(lr_mult=1, decay_mult=1)
 bias_param = dict(lr_mult=2, decay_mult=0)
 learned_param = [weight_param, bias_param]
@@ -331,9 +336,6 @@ def train_net(args, with_val_net=False):
 
 
 if __name__ == '__main__':
-    key = 'GLOG_minloglevel'
-    if not os.environ.get(key, ''):
-        os.environ[key] = '3'
     args = parser.parse_args()
 
     if args.gpu >= 0:
