@@ -243,7 +243,13 @@ def minialexnet(data, labels=None, train=False,
     n = caffe.NetSpec()
     n.data = data
     conv_kwargs = dict(param=param, train=train)
-    n.conv1, n.relu1 = conv_relu(n.data, 11, 96, stride=4, **conv_kwargs)
+    top = n.data
+
+    conv, relu = conv_relu(top, 11, 96, stride=4, **conv_kwargs)
+    setattr(n, 'conv1', conv)
+    setattr(n, 'relu1', relu)
+    top = relu
+
     n.pool1 = max_pool(n.relu1, 3, stride=2, train=train)
     n.conv2, n.relu2 = conv_relu(
         n.pool1, 5, 256, pad=2, group=2, **conv_kwargs)
