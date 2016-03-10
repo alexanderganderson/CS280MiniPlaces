@@ -291,7 +291,7 @@ def minialexnet(n, top, labels=None, train=False,
     n.fc8 = layers.InnerProduct(
         n.drop7, num_output=num_classes, param=param)
     top = n.fc8
-    return build_test_train(n, top, train, with_labels, labels)
+    return top
 
 
 def build_test_train(n, top, train, with_labels, labels):
@@ -330,8 +330,9 @@ def miniplaces_net(source, args, train=False, with_labels=True):
     n = caffe.NetSpec()
     places_data, places_labels = build_input(source, args, train)
     top = n.data = places_data
-    return minialexnet(n, top, labels=places_labels, train=train,
-                       with_labels=with_labels)
+    top = minialexnet(n, top, labels=places_labels, train=train,
+                      with_labels=with_labels)
+    return build_test_train(n, top, train, with_labels, places_labels)
 
 
 def train_net(args, with_val_net=False):
