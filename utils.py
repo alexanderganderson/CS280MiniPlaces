@@ -322,6 +322,7 @@ def build_input(source, args, train):
         transform_param=transform_param,
         source=source, root_folder=args.image_root, shuffle=train,
         batch_size=batch_size, ntop=2)
+    return places_data, places_labels
 
 
 def miniplaces_net(source, args, train=False, with_labels=True):
