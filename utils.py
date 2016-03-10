@@ -299,7 +299,7 @@ def add_alexnet(n, top, train=False, param=learned_param,
     nh_ = [1024]
     rlu_ = [True]
     drp_ = [True]
-    for i, (nh, rlu, drp) in enumerate(nh_, rlu_, drp_):
+    for i, (nh, rlu, drp) in enumerate(zip(nh_, rlu_, drp_)):
         i += len(fsize_)
         top = fc = layers.InnerProduct(
             top, num_output=nh, param=param, weight_filler=fc_filler,
