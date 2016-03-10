@@ -7,9 +7,8 @@ import time
 import tempfile
 import argparse
 
-# key = 'GLOG_minloglevel'
-# if not os.environ.get(key, ''):
-#     os.environ[key] = '3'
+# if not os.environ.get('GLOG_minloglevel', ''):
+os.environ['GLOG_minloglevel'] = '3'
 
 import caffe
 from caffe.proto import caffe_pb2
