@@ -296,29 +296,29 @@ def add_alexnet(n, top, train=False, param=learned_param,
             print 'Dim after pooling {} is {}'.format(i, dim)
     sys.stdout.flush()
 
-    nh_ = [1024, 1024]
-    rlu_ = [True, True]
-    drp_ = [True, True]
+    nh_ = [1024, 1024, num_classes]
+    rlu_ = [True, True, False]
+    drp_ = [True, True, False]
     for i, (nh, rlu, drp) in enumerate(zip(nh_, rlu_, drp_)):
         i += len(fsize_)
-        top = fc = layers.InnerProduct(
+        top = layers.InnerProduct(
             top, num_output=nh, param=param, weight_filler=fc_filler,
             bias_filler=zero_filler)
-        setattr(n, 'fc{}'.format(i), fc)
+        setattr(n, 'fc{}'.format(i), top)
         if rlu:
-            top = relu = layers.ReLU(fc, in_place=True)
-            setattr(n, 'relu{}'.format(i), relu)
+            top = layers.ReLU(top, in_place=True)
+            setattr(n, 'relu{}'.format(i), top)
         if drp:
-            top = drop = layers.Dropout(top, in_place=True)
-            setattr(n, 'drop{}'.format(i), drop)
+            top = layers.Dropout(top, in_place=True)
+            setattr(n, 'drop{}'.format(i), top)
         # n.fc6, n.relu6 = fc_relu(top, 1024, param=param)
         # n.drop6 = layers.Dropout(n.relu6, in_place=True)
 
     # n.fc7, n.relu7 = fc_relu(top, 1024, param=param)
     # n.drop7 = layers.Dropout(n.relu7, in_place=True)
-    n.fc8 = layers.InnerProduct(
-        top, num_output=num_classes, param=param)
-    top = n.fc8
+    # n.fc8 = layers.InnerProduct(
+    #     top, num_output=num_classes, param=param)
+    # top = n.fc8
     return top
 
 
