@@ -402,7 +402,8 @@ def eval_net(split, n_k=5):
         # create file with 'dummy' labels (all 0s)
         split_file = to_tempfile(
             ''.join('%s 0\n' % name for name in filenames))
-    test_net_file = miniplaces_net(split_file, train=False, with_labels=False)
+    test_net_file = miniplaces_net(split_file, args,
+                                   train=False, with_labels=False)
     weights_file = snapshot_at_iteration(args.iters, args)
     net = caffe.Net(test_net_file, weights_file, caffe.TEST)
     top_k_predictions = np.zeros((len(filenames), n_k), dtype=np.int32)
