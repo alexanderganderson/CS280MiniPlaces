@@ -264,18 +264,18 @@ def minialexnet(data, labels=None, train=False,
         conv, relu = conv_relu(
             top, fsize, nout, stride=stride,
             pad=pad, group=group, **conv_kwargs)
+        setattr(n, 'conv{}'.format(i), conv)
+        setattr(n, 'relu{}'.format(i), relu)
+        top = relu
         dim = int((dim - fsize + 1 + 2 * pad) / stride)
         print 'Dim after convolution {} = {}'.format(i, dim)
-
         if i is 0:
             nin = 3
         else:
             nin = nout_[i - 1]
         print 'Number of parameters is {:10}'.format(
             nout * nin * fsize ** 2 / group)
-        setattr(n, 'conv{}'.format(i), conv)
-        setattr(n, 'relu{}'.format(i), relu)
-        top = relu
+
         if pool:
             pl = max_pool(top, 3, stride=2, train=train)
             setattr(n, 'pool{}'.format(i), pl)
@@ -313,8 +313,8 @@ def build_test_train(n, top, train, with_labels, labels):
     return to_tempfile(str(n.to_proto()))
 
 
-def miniplaces_net(source, args, train=False, with_labels=True):
-    """Create a prototxt file for the network."""
+def build_input(source, args, train):
+    """Build input to network."""
     mean = [104, 117, 123]  # per-channel mean of the BGR image pixels
     transform_param = dict(mirror=train, crop_size=args.crop, mean_value=mean)
     batch_size = args.batch if train else 100
@@ -322,6 +322,19 @@ def miniplaces_net(source, args, train=False, with_labels=True):
         transform_param=transform_param,
         source=source, root_folder=args.image_root, shuffle=train,
         batch_size=batch_size, ntop=2)
+
+
+def miniplaces_net(source, args, train=False, with_labels=True):
+    """Create a prototxt file for the network."""
+    # mean = [104, 117, 123]  # per-channel mean of the BGR image pixels
+    # transform_param = dict(mirror=train, crop_size=args.crop,
+    # mean_value=mean)
+    # batch_size = args.batch if train else 100
+    # places_data, places_labels = layers.ImageData(
+    #     transform_param=transform_param,
+    #     source=source, root_folder=args.image_root, shuffle=train,
+    #     batch_size=batch_size, ntop=2)
+    places_data, places_labels = build_input(source, args, train)
     return minialexnet(data=places_data, labels=places_labels, train=train,
                        with_labels=with_labels)
 
