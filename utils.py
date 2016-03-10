@@ -334,7 +334,13 @@ if __name__ == '__main__':
     key = 'GLOG_minloglevel'
     if not os.environ.get(key, ''):
         os.environ[key] = '3'
-
     args = parser.parse_args()
+
+    if args.gpu >= 0:
+        caffe.set_mode_gpu()
+        caffe.set_device(args.gpu)
+    else:
+        caffe.set_mode_cpu()
+
     train_net(args)
     pass
