@@ -191,6 +191,18 @@ def miniplaces_solver(train_net_path, args, test_net_path=None):
     return to_tempfile(str(s))
 
 
+def build_input(source, args, train):
+    """Build input to network."""
+    mean = [104, 117, 123]  # per-channel mean of the BGR image pixels
+    transform_param = dict(mirror=train, crop_size=args.crop, mean_value=mean)
+    batch_size = args.batch if train else 100
+    places_data, places_labels = layers.ImageData(
+        transform_param=transform_param,
+        source=source, root_folder=args.image_root, shuffle=train,
+        batch_size=batch_size, ntop=2)
+    return places_data, places_labels
+
+
 def conv_relu(bottom, ks, nout, stride=1, pad=0, group=1,
               param=learned_param,
               weight_filler=conv_filler, bias_filler=zero_filler,
@@ -228,9 +240,8 @@ def max_pool(bottom, ks, stride=1, train=False, cudnn=True):
         stride=stride, **engine)
 
 
-def minialexnet(n, top, labels=None, train=False,
-                param=learned_param,
-                num_classes=100, with_labels=True):
+def add_alexnet(n, top, train=False, param=learned_param,
+                num_classes=100):
     """
     Return a protobuf text file specifying a variant of AlexNet.
 
@@ -313,25 +324,12 @@ def build_test_train(n, top, train, with_labels, labels):
     # return to_tempfile(str(n.to_proto()))
 
 
-def build_input(source, args, train):
-    """Build input to network."""
-    mean = [104, 117, 123]  # per-channel mean of the BGR image pixels
-    transform_param = dict(mirror=train, crop_size=args.crop, mean_value=mean)
-    batch_size = args.batch if train else 100
-    places_data, places_labels = layers.ImageData(
-        transform_param=transform_param,
-        source=source, root_folder=args.image_root, shuffle=train,
-        batch_size=batch_size, ntop=2)
-    return places_data, places_labels
-
-
 def miniplaces_net(source, args, train=False, with_labels=True):
     """Create a prototxt file for the network."""
     n = caffe.NetSpec()
     places_data, places_labels = build_input(source, args, train)
     top = n.data = places_data
-    top = minialexnet(n, top, labels=places_labels, train=train,
-                      with_labels=with_labels)
+    top = add_alexnet(n, top, train=train)
     build_test_train(n, top, train, with_labels, places_labels)
     return to_tempfile(str(n.to_proto()))
 
