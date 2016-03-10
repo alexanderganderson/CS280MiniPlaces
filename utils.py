@@ -270,6 +270,13 @@ def minialexnet(data, labels=None, train=False,
             pad=pad, group=group, **conv_kwargs)
         dim = int((dim - fsize + 1 + 2 * pad) / stride)
         print 'Dim after convolution {} = {}'.format(i, dim)
+
+        if i is 0:
+            nin = 3
+        else:
+            nin = nout_[i - 1]
+        print 'Number of parameters is {:10}'.format(
+            nout * nin * fsize ** 2)
         setattr(n, 'conv{}'.format(i), conv)
         setattr(n, 'relu{}'.format(i), relu)
         top = relu
