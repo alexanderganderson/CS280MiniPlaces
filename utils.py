@@ -310,7 +310,7 @@ def build_test_train(n, top, train, with_labels, labels):
     else:
         n.ignored_label = labels
         n.silence_label = layers.Silence(n.ignored_label, ntop=0)
-    return to_tempfile(str(n.to_proto()))
+    # return to_tempfile(str(n.to_proto()))
 
 
 def build_input(source, args, train):
@@ -332,7 +332,8 @@ def miniplaces_net(source, args, train=False, with_labels=True):
     top = n.data = places_data
     top = minialexnet(n, top, labels=places_labels, train=train,
                       with_labels=with_labels)
-    return build_test_train(n, top, train, with_labels, places_labels)
+    build_test_train(n, top, train, with_labels, places_labels)
+    return to_tempfile(str(n.to_proto()))
 
 
 def train_net(args, with_val_net=False):
