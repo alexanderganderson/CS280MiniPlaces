@@ -245,22 +245,28 @@ def minialexnet(data, labels=None, train=False,
     conv_kwargs = dict(param=param, train=train)
     top = n.data
 
-    conv, relu = conv_relu(top, 11, 96, stride=4, **conv_kwargs)
-    setattr(n, 'conv1', conv)
-    setattr(n, 'relu1', relu)
-    top = relu
+    fsize_ = [11, 5, 3, 3, 3]
+    nout_ = [96, 256, 384, 384, 256]
+    stride_ = [4, 1, 1, 1]
+    pool_ = [True, True, False, False, True]
 
-    n.pool1 = max_pool(n.relu1, 3, stride=2, train=train)
-    n.conv2, n.relu2 = conv_relu(
-        n.pool1, 5, 256, pad=2, group=2, **conv_kwargs)
-    n.pool2 = max_pool(n.relu2, 3, stride=2, train=train)
-    n.conv3, n.relu3 = conv_relu(n.pool2, 3, 384, pad=1, **conv_kwargs)
-    n.conv4, n.relu4 = conv_relu(
-        n.relu3, 3, 384, pad=1, group=2, **conv_kwargs)
-    n.conv5, n.relu5 = conv_relu(
-        n.relu4, 3, 256, pad=1, group=2, **conv_kwargs)
-    n.pool5 = max_pool(n.relu5, 3, stride=2, train=train)
-    n.fc6, n.relu6 = fc_relu(n.pool5, 1024, param=param)
+    for i, (fsize, nout, stride, pool) in enumerate(
+            zip(fsize_, nout_, stride_, pool_)):
+        if i is 0:
+            group = 1
+        else:
+            group = 2
+        conv, relu = conv_relu(top, fsize, nout, stride=stride,
+                               group=group, **conv_kwargs)
+        setattr(n, 'conv{}'.format(i), conv)
+        setattr(n, 'relu{}'.format(i), relu)
+        top = relu
+        if pool:
+            pl = max_pool(top, 3, stride=2, train=train)
+            setattr(n, 'pool{}'.format(i), pool)
+            top = pl
+
+    n.fc6, n.relu6 = fc_relu(top, 1024, param=param)
     n.drop6 = layers.Dropout(n.relu6, in_place=True)
     n.fc7, n.relu7 = fc_relu(n.drop6, 1024, param=param)
     n.drop7 = layers.Dropout(n.relu7, in_place=True)
