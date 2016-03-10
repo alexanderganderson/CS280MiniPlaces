@@ -301,10 +301,6 @@ def add_alexnet(n, top, train=False, param=learned_param,
     drp_ = [True, True]
     for i, (nh, rlu, drp) in enumerate(zip(nh_, rlu_, drp_)):
         i += len(fsize_)
-        # if i < 2:
-        #     weight_filler = fc_filler
-        # else:
-        #     weight_filler = zero_filler
         top = layers.InnerProduct(
             top, num_output=nh, param=param, weight_filler=fc_filler,
             bias_filler=zero_filler)
@@ -315,14 +311,9 @@ def add_alexnet(n, top, train=False, param=learned_param,
         if drp:
             top = layers.Dropout(top, in_place=True)
             setattr(n, 'drop{}'.format(i), top)
-        # n.fc6, n.relu6 = fc_relu(top, 1024, param=param)
-        # n.drop6 = layers.Dropout(n.relu6, in_place=True)
-
-    # n.fc7, n.relu7 = fc_relu(top, 1024, param=param)
-    # n.drop7 = layers.Dropout(n.relu7, in_place=True)
-    n.fc8 = layers.InnerProduct(
+    top = layers.InnerProduct(
         top, num_output=num_classes, param=param)
-    top = n.fc8
+    setattr(n, 'fctop', top)
     return top
 
 
