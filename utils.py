@@ -262,7 +262,7 @@ def minialexnet(data, labels=None, train=False,
     n.fc8 = layers.InnerProduct(
         n.drop7, num_output=num_classes, param=param)
     top = n.fc8
-    return build_test_train(n, top, with_labels, labels)
+    return build_test_train(n, top, train, with_labels, labels)
 
 
 def build_test_train(n, top, train, with_labels, labels):
