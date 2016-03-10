@@ -228,7 +228,7 @@ def max_pool(bottom, ks, stride=1, train=False, cudnn=True):
         stride=stride, **engine)
 
 
-def minialexnet(data, labels=None, train=False,
+def minialexnet(n, top, labels=None, train=False,
                 param=learned_param,
                 num_classes=100, with_labels=True):
     """
@@ -242,10 +242,10 @@ def minialexnet(data, labels=None, train=False,
           due to the lower resolution of mini-places images (128x128) compared
           with ImageNet images (usually resized to 256x256)
     """
-    n = caffe.NetSpec()
-    n.data = data
+    # n = caffe.NetSpec()
+    # n.data = data
     conv_kwargs = dict(param=param, train=train)
-    top = n.data
+
     dim = 96
     print 'Input dim is {}'.format(dim)
 
@@ -327,16 +327,10 @@ def build_input(source, args, train):
 
 def miniplaces_net(source, args, train=False, with_labels=True):
     """Create a prototxt file for the network."""
-    # mean = [104, 117, 123]  # per-channel mean of the BGR image pixels
-    # transform_param = dict(mirror=train, crop_size=args.crop,
-    # mean_value=mean)
-    # batch_size = args.batch if train else 100
-    # places_data, places_labels = layers.ImageData(
-    #     transform_param=transform_param,
-    #     source=source, root_folder=args.image_root, shuffle=train,
-    #     batch_size=batch_size, ntop=2)
+    n = caffe.NetSpec()
     places_data, places_labels = build_input(source, args, train)
-    return minialexnet(data=places_data, labels=places_labels, train=train,
+    top = n.data = places_data
+    return minialexnet(n, top, labels=places_labels, train=train,
                        with_labels=with_labels)
 
 
