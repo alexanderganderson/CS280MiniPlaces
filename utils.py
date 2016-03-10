@@ -252,15 +252,11 @@ def minialexnet(data, labels=None, train=False,
     fsize_ = [11, 5, 3, 3, 3]
     nout_ = [96, 256, 384, 384, 256]
     stride_ = [4, 1, 1, 1, 1]
+    group_ = [1, 2, 1, 2, 2]
     pool_ = [True, True, False, False, True]
 
-    for i, (fsize, nout, stride, pool) in enumerate(
-            zip(fsize_, nout_, stride_, pool_)):
-        if i is 0:
-            group = 1
-        else:
-            group = 2
-
+    for i, (fsize, nout, stride, pool, group) in enumerate(
+            zip(fsize_, nout_, stride_, pool_, group_)):
         if i is 1:
             pad = 2
         else:
@@ -276,7 +272,7 @@ def minialexnet(data, labels=None, train=False,
         else:
             nin = nout_[i - 1]
         print 'Number of parameters is {:10}'.format(
-            nout * nin * fsize ** 2)
+            nout * nin * fsize ** 2 / group)
         setattr(n, 'conv{}'.format(i), conv)
         setattr(n, 'relu{}'.format(i), relu)
         top = relu
