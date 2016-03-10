@@ -331,6 +331,10 @@ def train_net(args, with_val_net=False):
 
 
 if __name__ == '__main__':
+    key = 'GLOG_minloglevel'
+    if not os.environ.get(key, ''):
+        os.environ[key] = '3'
+
     args = parser.parse_args()
     train_net(args)
     pass
