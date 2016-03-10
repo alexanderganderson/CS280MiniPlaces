@@ -256,8 +256,14 @@ def minialexnet(data, labels=None, train=False,
             group = 1
         else:
             group = 2
-        conv, relu = conv_relu(top, fsize, nout, stride=stride,
-                               group=group, **conv_kwargs)
+
+        if i is 1:
+            pad = 2
+        else:
+            pad = 1
+        conv, relu = conv_relu(
+            top, fsize, nout, stride=stride,
+            pad=pad, group=group, **conv_kwargs)
         setattr(n, 'conv{}'.format(i), conv)
         setattr(n, 'relu{}'.format(i), relu)
         top = relu
