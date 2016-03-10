@@ -263,7 +263,7 @@ def minialexnet(data, labels=None, train=False,
         top = relu
         if pool:
             pl = max_pool(top, 3, stride=2, train=train)
-            setattr(n, 'pool{}'.format(i), pool)
+            setattr(n, 'pool{}'.format(i), pl)
             top = pl
 
     n.fc6, n.relu6 = fc_relu(top, 1024, param=param)
