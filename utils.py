@@ -331,10 +331,10 @@ def build_test_train(n, top, train, with_labels, labels):
         preds = n.probs = layers.Softmax(top)
     if with_labels:
         n.label = labels
-        n.loss = layers.SoftmaxWithLoss(n.fc8, n.label)
-        n.accuracy_at_1 = layers.Accuracy(preds, n.label)
+        n.loss = layers.SoftmaxWithLoss(top, labels)
+        n.accuracy_at_1 = layers.Accuracy(preds, labels)
         n.accuracy_at_5 = layers.Accuracy(
-            preds, n.label, accuracy_param=dict(top_k=5))
+            preds, labels, accuracy_param=dict(top_k=5))
     else:
         n.ignored_label = labels
         n.silence_label = layers.Silence(n.ignored_label, ntop=0)
