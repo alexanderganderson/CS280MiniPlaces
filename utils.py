@@ -251,7 +251,7 @@ def minialexnet(data, labels=None, train=False,
 
     fsize_ = [11, 5, 3, 3, 3]
     nout_ = [96, 256, 384, 384, 256]
-    stride_ = [4, 1, 1, 1]
+    stride_ = [4, 1, 1, 1, 1]
     pool_ = [True, True, False, False, True]
 
     for i, (fsize, nout, stride, pool) in enumerate(
