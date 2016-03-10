@@ -6,9 +6,11 @@ import os
 import time
 import tempfile
 import argparse
+import sys
 
-# if not os.environ.get('GLOG_minloglevel', ''):
-os.environ['GLOG_minloglevel'] = '3'
+tag = 'GLOG_minloglevel'
+if not os.environ.get(tag, ''):
+    os.environ[tag] = '3'
 
 import caffe
 from caffe.proto import caffe_pb2
@@ -266,7 +268,7 @@ def minialexnet(data, labels=None, train=False,
         conv, relu = conv_relu(
             top, fsize, nout, stride=stride,
             pad=pad, group=group, **conv_kwargs)
-        dim = (dim - fsize + 1 + 2 * pad) / stride
+        dim = int((dim - fsize + 1 + 2 * pad) / stride)
         print 'Dim after convolution {} = {}'.format(i, dim)
         setattr(n, 'conv{}'.format(i), conv)
         setattr(n, 'relu{}'.format(i), relu)
@@ -275,8 +277,9 @@ def minialexnet(data, labels=None, train=False,
             pl = max_pool(top, 3, stride=2, train=train)
             setattr(n, 'pool{}'.format(i), pl)
             top = pl
-            dim = (dim - 3 + 1 + 2) / 2
+            dim = int((dim - 3 + 1 + 2) / 2)
             print 'Dim after pooling {} is {}'.format(i, dim)
+    sys.stdout.flush()
 
     n.fc6, n.relu6 = fc_relu(top, 1024, param=param)
     n.drop6 = layers.Dropout(n.relu6, in_place=True)
