@@ -285,16 +285,16 @@ def miniplaces_net(source, args, train=False, with_labels=True):
 
 def train_net(args, with_val_net=False):
     """Train the network."""
-    train_net_file = miniplaces_net(get_split('train'), train=True)
+    train_net_file = miniplaces_net(get_split('train'), args, train=True)
     # Set with_val_net=True to test during training.
     # Environment variable GLOG_minloglevel should be set to 0 to display
     # Caffe output in this case; otherwise, the test result will not be
     # displayed.
     if with_val_net:
-        val_net_file = miniplaces_net(get_split('val'), train=False)
+        val_net_file = miniplaces_net(get_split('val'), args, train=False)
     else:
         val_net_file = None
-    solver_file = miniplaces_solver(train_net_file, val_net_file)
+    solver_file = miniplaces_solver(train_net_file, args, val_net_file)
     solver = caffe.get_solver(solver_file)
     outputs = sorted(solver.net.outputs)
 
