@@ -1,18 +1,20 @@
 """Utilities for creating caffe networks."""
 
+from __future__ import division
+
 import os
 import time
 import tempfile
 import argparse
 
+key = 'GLOG_minloglevel'
+if not os.environ.get(key, ''):
+    os.environ[key] = '3'
+
 import caffe
 from caffe.proto import caffe_pb2
 from caffe import layers
 from caffe import params
-
-key = 'GLOG_minloglevel'
-if not os.environ.get(key, ''):
-    os.environ[key] = '3'
 
 
 weight_param = dict(lr_mult=1, decay_mult=1)
