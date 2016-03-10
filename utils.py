@@ -3,6 +3,7 @@
 import os
 import time
 import tempfile
+import argparse
 
 import caffe
 from caffe.proto import caffe_pb2
@@ -19,6 +20,60 @@ msra_filler = dict(type='msra')
 uniform_filler = dict(type='uniform', min=-0.1, max=0.1)
 fc_filler = dict(type='gaussian', std=0.005)
 conv_filler = dict(type='msra')
+
+parser = argparse.ArgumentParser(
+    description='Train and evaluate a net on the MIT mini-places dataset.')
+parser.add_argument(
+    '--image_root', default='./images/',
+    help='Directory where images are stored')
+parser.add_argument(
+    '--crop', type=int, default=96,
+    help=('The edge length of the random image crops'
+          '(defaults to 96 for 96x96 crops)'))
+parser.add_argument(
+    '--disp', type=int, default=10,
+    help='Print loss/accuracy every --disp training iterations')
+parser.add_argument(
+    '--snapshot_dir', default='./snapshot',
+    help='Path to directory where snapshots are saved')
+parser.add_argument(
+    '--snapshot_prefix', default='place_net',
+    help='Snapshot filename prefix')
+parser.add_argument(
+    '--iters', type=int, default=50 * 1000,
+    help='Total number of iterations to train the network')
+parser.add_argument(
+    '--batch', type=int, default=256,
+    help='The batch size to use for training')
+parser.add_argument(
+    '--iter_size', type=int, default=1,
+    help=('The number of iterations (batches) over which to average the '
+          'gradient computation. Effectively increases the batch size '
+          '(--batch) by this factor, but without increasing memory use '))
+parser.add_argument(
+    '--lr', type=float, default=0.01,
+    help='The initial learning rate')
+parser.add_argument(
+    '--gamma', type=float, default=0.1,
+    help='Factor by which to drop the learning rate')
+parser.add_argument(
+    '--stepsize', type=int, default=10 * 1000,
+    help='Drop the learning rate every N iters -- this specifies N')
+parser.add_argument(
+    '--momentum', type=float, default=0.9,
+    help='The momentum hyperparameter to use for momentum SGD')
+parser.add_argument(
+    '--decay', type=float, default=5e-4,
+    help='The L2 weight decay coefficient')
+parser.add_argument(
+    '--seed', type=int, default=1,
+    help='Seed for the random number generator')
+parser.add_argument(
+    '--cudnn', action='store_true',
+    help='Use CuDNN at training time -- usually faster, but non-deterministic')
+parser.add_argument(
+    '--gpu', type=int, default=0,
+    help='GPU ID to use for training and inference (-1 for CPU)')
 
 
 def get_split(split):
@@ -276,5 +331,6 @@ def train_net(args, with_val_net=False):
 
 
 if __name__ == '__main__':
-    train_net()
+    args = parser.parse_args()
+    train_net(args)
     pass
