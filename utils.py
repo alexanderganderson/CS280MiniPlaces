@@ -8,10 +8,11 @@ import tempfile
 import argparse
 import numpy as np
 import sys
+import pickle
 
-# tag = 'GLOG_minloglevel'
-# if not os.environ.get(tag, ''):
-os.environ['GLOG_minloglevel'] = '3'
+tag = 'GLOG_minloglevel'
+if not os.environ.get(tag, ''):
+	os.environ['GLOG_minloglevel'] = '3'
 
 import caffe
 from caffe.proto import caffe_pb2
@@ -84,6 +85,23 @@ parser.add_argument(
     '--gpu', type=int, default=0,
     help='GPU ID to use for training and inference (-1 for CPU)')
 
+def standard_layer():
+	fsize_  = [11, 5, 3, 3, 3]
+	nout_   = [96, 256, 384, 384, 256]
+	stride_ = [4, 1, 1, 1, 1]
+	group_  = [1, 2, 1, 2, 2]
+	pool_   = [True, True, False, False, True]
+	foldname = 'standard'
+	pickle_it(fsize_, nout_, stride_, group_, pool_, foldname)
+
+def pickle_it(fsize_, nout_, stride_, group_, pool_, foldname):
+	with open('layer_pkl.p','wb') as fn:
+		pickle.dump(fsize_, fn)
+		pickle.dump(nout_, fn)
+		pickle.dump(stride_, fn)
+		pickle.dump(group_, fn)
+		pickle.dump(pool_, fn)
+		pickle.dump(foldname, fn)
 
 def get_split(split):
     """Get filename for split."""
@@ -241,8 +259,10 @@ def max_pool(bottom, ks, stride=1, train=False, cudnn=True):
         stride=stride, **engine)
 
 
-def add_alexnet(n, top, train=False, param=learned_param,
-                num_classes=100):
+def add_alexnet(n, top, fsize_=[11,5,3,3,3],
+    nout_=[96,256,384,384,256], stride_=[4,1,1,1,1],
+    group_=[1,2,1,2,2], pool_=[True,True,False,False,True], train=False, param=learned_param, num_classes=100):
+    
     """
     Return a protobuf text file specifying a variant of AlexNet.
 
@@ -261,11 +281,11 @@ def add_alexnet(n, top, train=False, param=learned_param,
     dim = 96
     print 'Input dim is {}'.format(dim)
 
-    fsize_ = [11, 5, 3, 3, 3]
-    nout_ = [96, 256, 384, 384, 256]
-    stride_ = [4, 1, 1, 1, 1]
-    group_ = [1, 2, 1, 2, 2]
-    pool_ = [True, True, False, False, True]
+    #fsize_ = [11, 5, 3, 3, 3]
+    #nout_ = [96, 256, 384, 384, 256]
+    #stride_ = [4, 1, 1, 1, 1]
+    #group_ = [1, 2, 1, 2, 2]
+    #pool_ = [True, True, False, False, True]
 
     for i, (fsize, nout, stride, pool, group) in enumerate(
             zip(fsize_, nout_, stride_, pool_, group_)):
@@ -341,7 +361,18 @@ def miniplaces_net(source, args, train=False, with_labels=True):
     n = caffe.NetSpec()
     places_data, places_labels = build_input(source, args, train)
     top = n.data = places_data
-    top = add_alexnet(n, top, train=train)
+    if os.path.isfile('layer_pkl.p'):
+		with open('layer_pkl.p','rb') as fn:
+			fsize_  = pickle.load(fn)
+			nout_   = pickle.load(fn)
+			stride_ = pickle.load(fn)
+			group_  = pickle.load(fn)
+    			pool_   = pickle.load(fn)	
+			foldname = pickle.load(fn)
+    		top = add_alexnet(n, top, fsize_, 
+				nout_, stride_, group_, pool_, train=train)
+    else:
+		top = add_alexnet(n, top, train=train) 
     build_test_train(n, top, train, with_labels, places_labels)
     return to_tempfile(str(n.to_proto()))
 
@@ -454,12 +485,18 @@ def eval_net(split, n_k=5):
 
 if __name__ == '__main__':
     args = parser.parse_args()
+    
+    #if not args.gpu:
+#	    args.gpu = 1
 
     if args.gpu >= 0:
         caffe.set_mode_gpu()
         caffe.set_device(args.gpu)
     else:
         caffe.set_mode_cpu()
+	
+    standard_layer()
+    args.snapshot_dir = './standard/snapshot'
 
     train_net(args)
     print '\nTraining complete. Evaluating...\n'
