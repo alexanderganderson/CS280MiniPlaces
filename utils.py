@@ -98,11 +98,11 @@ def layer_dict = standard_alex():
 def skinny_alex():
 	layer_dict = {}
 	layer_dict['fsize_']   = [11, 5, 3, 3, 3]
-	layer_dict['nout_']    = [96, 256, 384, 384, 256]
-	layer_dict['stride_']  = [4, 1, 1, 1, 1]
-	layer_dict['group_']   = [1, 2, 1, 2, 2]
-	layer_dict['pool_']    = [True, True, False, False, True]
-	layer_dict['foldname'] = 'standard'
+	layer_dict['nout_']    = [48, 128, 192, 192, 192, 128]
+	layer_dict['stride_']  = [4, 1, 1, 1, 1, 1]
+	layer_dict['group_']   = [1, 2, 1, 1, 2, 2]
+	layer_dict['pool_']    = [True, True, False, False, False, True]
+	layer_dict['foldname'] = 'skinny'
 	return layer_dict
 
 #def pickle_it(fsize_, nout_, stride_, group_, pool_, foldname):
