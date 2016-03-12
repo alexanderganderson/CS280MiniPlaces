@@ -8,7 +8,6 @@ import tempfile
 import argparse
 import numpy as np
 import sys
-import pickle
 
 tag = 'GLOG_minloglevel'
 if not os.environ.get(tag, ''):
@@ -85,23 +84,35 @@ parser.add_argument(
     '--gpu', type=int, default=0,
     help='GPU ID to use for training and inference (-1 for CPU)')
 
-def standard_layer():
-	fsize_  = [11, 5, 3, 3, 3]
-	nout_   = [96, 256, 384, 384, 256]
-	stride_ = [4, 1, 1, 1, 1]
-	group_  = [1, 2, 1, 2, 2]
-	pool_   = [True, True, False, False, True]
-	foldname = 'standard'
-	pickle_it(fsize_, nout_, stride_, group_, pool_, foldname)
+def layer_dict = standard_alex():
+	layer_dict = {}
+	layer_dict['fsize_']   = [11, 5, 3, 3, 3]
+	layer_dict['nout_']    = [96, 256, 384, 384, 256]
+	layer_dict['stride_']  = [4, 1, 1, 1, 1]
+	layer_dict['group_']   = [1, 2, 1, 2, 2]
+	layer_dict['pool_']    = [True, True, False, False, True]
+	layer_dict['foldname'] = 'standard'
+	return layer_dict
 
-def pickle_it(fsize_, nout_, stride_, group_, pool_, foldname):
-	with open('layer_pkl.p','wb') as fn:
-		pickle.dump(fsize_, fn)
-		pickle.dump(nout_, fn)
-		pickle.dump(stride_, fn)
-		pickle.dump(group_, fn)
-		pickle.dump(pool_, fn)
-		pickle.dump(foldname, fn)
+
+def skinny_alex():
+	layer_dict = {}
+	layer_dict['fsize_']   = [11, 5, 3, 3, 3]
+	layer_dict['nout_']    = [96, 256, 384, 384, 256]
+	layer_dict['stride_']  = [4, 1, 1, 1, 1]
+	layer_dict['group_']   = [1, 2, 1, 2, 2]
+	layer_dict['pool_']    = [True, True, False, False, True]
+	layer_dict['foldname'] = 'standard'
+	return layer_dict
+
+#def pickle_it(fsize_, nout_, stride_, group_, pool_, foldname):
+#	with open('layer_pkl.p','wb') as fn:
+#		pickle.dump(fsize_, fn)
+#		pickle.dump(nout_, fn)
+#		pickle.dump(stride_, fn)
+#		pickle.dump(group_, fn)
+#		pickle.dump(pool_, fn)
+#		pickle.dump(foldname, fn)
 
 def get_split(split):
     """Get filename for split."""
@@ -356,30 +367,28 @@ def build_test_train(n, top, train, with_labels, labels):
     # return to_tempfile(str(n.to_proto()))
 
 
-def miniplaces_net(source, args, train=False, with_labels=True):
+def miniplaces_net(source, args, layer_dict, train=False, with_labels=True):
     """Create a prototxt file for the network."""
     n = caffe.NetSpec()
     places_data, places_labels = build_input(source, args, train)
     top = n.data = places_data
-    if os.path.isfile('layer_pkl.p'):
-		with open('layer_pkl.p','rb') as fn:
-			fsize_  = pickle.load(fn)
-			nout_   = pickle.load(fn)
-			stride_ = pickle.load(fn)
-			group_  = pickle.load(fn)
-    			pool_   = pickle.load(fn)	
-			foldname = pickle.load(fn)
-    		top = add_alexnet(n, top, fsize_, 
-				nout_, stride_, group_, pool_, train=train)
-    else:
-		top = add_alexnet(n, top, train=train) 
+#    if os.path.isfile('layer_pkl.p'):
+#		with open('layer_pkl.p','rb') as fn:
+    fsize_  = layer_dict['fsize_']
+    nout_   = layer_dict['nout_']
+    stride_ = layer_dict['stride_']
+    group_  = layer_dict['group_']
+    pool_   = layer_dict['pool_']
+#		args.snapshot_dir = './'+foldname+'/snapshot'
+    top = add_alexnet(n, top, fsize_, nout_, stride_, group_, 
+		    pool_, train=train)
     build_test_train(n, top, train, with_labels, places_labels)
     return to_tempfile(str(n.to_proto()))
 
 
-def train_net(args, with_val_net=False):
+def train_net(args, layer_dict, with_val_net=False):
     """Train the network."""
-    train_net_file = miniplaces_net(get_split('train'), args, train=True)
+    train_net_file = miniplaces_net(get_split('train'), args, layer_dict, train=True)
     # Set with_val_net=True to test during training.
     # Environment variable GLOG_minloglevel should be set to 0 to display
     # Caffe output in this case; otherwise, the test result will not be
@@ -495,10 +504,9 @@ if __name__ == '__main__':
     else:
         caffe.set_mode_cpu()
 	
-    standard_layer()
-    args.snapshot_dir = './standard/snapshot'
-
-    train_net(args)
+    layer_dict = standard_alex()
+    args.snapshot_dir = './'+layer_dict[foldname]+'/snapshot'
+    train_net(args, layer_dict)
     print '\nTraining complete. Evaluating...\n'
     for split in ('train', 'val', 'test'):
         eval_net(split)
