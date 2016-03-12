@@ -84,7 +84,7 @@ parser.add_argument(
     '--gpu', type=int, default=0,
     help='GPU ID to use for training and inference (-1 for CPU)')
 
-def layer_dict = standard_alex():
+def standard_alex():
 	layer_dict = {}
 	layer_dict['fsize_']   = [11, 5, 3, 3, 3]
 	layer_dict['nout_']    = [96, 256, 384, 384, 256]
@@ -97,12 +97,22 @@ def layer_dict = standard_alex():
 
 def skinny_alex():
 	layer_dict = {}
-	layer_dict['fsize_']   = [11, 5, 3, 3, 3]
+	layer_dict['fsize_']   = [11, 5, 3, 3, 3, 3]
 	layer_dict['nout_']    = [48, 128, 192, 192, 192, 128]
 	layer_dict['stride_']  = [4, 1, 1, 1, 1, 1]
 	layer_dict['group_']   = [1, 2, 1, 1, 2, 2]
 	layer_dict['pool_']    = [True, True, False, False, False, True]
 	layer_dict['foldname'] = 'skinny'
+	return layer_dict
+
+def skinny_fat_alex():
+	layer_dict = {}
+	layer_dict['fsize_']   = [11, 5, 3, 3, 3]
+	layer_dict['nout_']    = [72, 192, 288, 288, 192]
+	layer_dict['stride_']  = [4, 1, 1, 1, 1]
+	layer_dict['group_']   = [1, 2, 1, 2, 2]
+	layer_dict['pool_']    = [True, True, False, False, True]
+	layer_dict['foldname'] = 'skinny_fat'
 	return layer_dict
 
 #def pickle_it(fsize_, nout_, stride_, group_, pool_, foldname):
@@ -433,7 +443,7 @@ def train_net(args, layer_dict, with_val_net=False):
     solver.net.save(snapshot_at_iteration(args.iters, args))
 
 
-def eval_net(split, n_k=5):
+def eval_net(split, layer_dict, n_k=5):
     """Evaluate the network for a given split."""
     print 'Running evaluation for split:', split
     filenames = []
@@ -483,6 +493,7 @@ def eval_net(split, n_k=5):
     else:
         print 'Not computing accuracy; ground truth unknown for split:', split
     filename = 'top_%d_predictions.%s.csv' % (n_k, split)
+    filename = layer_dict['foldname']+'/'+filename
     with open(filename, 'w') as f:
         f.write(','.join(['image'] +
                          ['label%d' % i for i in range(1, n_k + 1)]))
@@ -507,8 +518,29 @@ if __name__ == '__main__':
     layer_dict = standard_alex()
     args.snapshot_dir = './'+layer_dict['foldname']+'/snapshot'
     train_net(args, layer_dict)
+
     print '\nTraining complete. Evaluating...\n'
     for split in ('train', 'val', 'test'):
-        eval_net(split)
+        eval_net(split, layer_dict)
+        print
+    print 'Evaluation complete.'
+
+    layer_dict = skinny_alex()
+    args.snapshot_dir = './'+layer_dict['foldname']+'/snapshot'
+    train_net(args, layer_dict)
+
+    print '\nTraining complete. Evaluating...\n'
+    for split in ('train', 'val', 'test'):
+        eval_net(split, layer_dict)
+        print
+    print 'Evaluation complete.'
+
+    layer_dict = skinny_fat_alex()
+    args.snapshot_dir = './'+layer_dict['foldname']+'/snapshot'
+    train_net(args, layer_dict)
+
+    print '\nTraining complete. Evaluating...\n'
+    for split in ('train', 'val', 'test'):
+        eval_net(split, layer_dict)
         print
     print 'Evaluation complete.'
