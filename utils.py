@@ -505,7 +505,7 @@ if __name__ == '__main__':
         caffe.set_mode_cpu()
 	
     layer_dict = standard_alex()
-    args.snapshot_dir = './'+layer_dict[foldname]+'/snapshot'
+    args.snapshot_dir = './'+layer_dict['foldname']+'/snapshot'
     train_net(args, layer_dict)
     print '\nTraining complete. Evaluating...\n'
     for split in ('train', 'val', 'test'):
