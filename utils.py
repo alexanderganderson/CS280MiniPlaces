@@ -404,7 +404,7 @@ def train_net(args, layer_dict, with_val_net=False):
     # Caffe output in this case; otherwise, the test result will not be
     # displayed.
     if with_val_net:
-        val_net_file = miniplaces_net(get_split('val'), args, train=False)
+        val_net_file = miniplaces_net(get_split('val'), args, layer_dict, train=False)
     else:
         val_net_file = None
     solver_file = miniplaces_solver(train_net_file, args, val_net_file)
@@ -463,7 +463,7 @@ def eval_net(split, layer_dict, n_k=5):
         # create file with 'dummy' labels (all 0s)
         split_file = to_tempfile(
             ''.join('%s 0\n' % name for name in filenames))
-    test_net_file = miniplaces_net(split_file, args,
+    test_net_file = miniplaces_net(split_file, args, layer_dict, 
                                    train=False, with_labels=False)
     weights_file = snapshot_at_iteration(args.iters, args)
     net = caffe.Net(test_net_file, weights_file, caffe.TEST)
@@ -515,15 +515,15 @@ if __name__ == '__main__':
     else:
         caffe.set_mode_cpu()
 	
-    layer_dict = standard_alex()
-    args.snapshot_dir = './'+layer_dict['foldname']+'/snapshot'
-    train_net(args, layer_dict)
+    #layer_dict = standard_alex()
+    #args.snapshot_dir = './'+layer_dict['foldname']+'/snapshot'
+    #train_net(args, layer_dict)
 
-    print '\nTraining complete. Evaluating...\n'
-    for split in ('train', 'val', 'test'):
-        eval_net(split, layer_dict)
-        print
-    print 'Evaluation complete.'
+    #print '\nTraining complete. Evaluating...\n'
+    #for split in ('train', 'val', 'test'):
+    #    eval_net(split, layer_dict)
+    #    print
+    #print 'Evaluation complete.'
 
     layer_dict = skinny_alex()
     args.snapshot_dir = './'+layer_dict['foldname']+'/snapshot'
