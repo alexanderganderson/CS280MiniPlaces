@@ -13,6 +13,8 @@ tag = 'GLOG_minloglevel'
 if not os.environ.get(tag, ''):
 	os.environ['GLOG_minloglevel'] = '3'
 
+sys.path.append('/home/redwood/caffe/')
+
 import caffe
 from caffe.proto import caffe_pb2
 from caffe import layers
@@ -94,6 +96,25 @@ def standard_alex():
 	layer_dict['foldname'] = 'standard'
 	return layer_dict
 
+def deeper_alex():
+	layer_dict = {}
+	layer_dict['fsize_']   = [7, 5, 3, 3, 3]
+	layer_dict['nout_']    = [64, 112, 192, 320, 512]
+	layer_dict['stride_']  = [1, 1, 1, 1, 1]
+	layer_dict['group_']   = [1, 1, 1, 1, 1]
+	layer_dict['pool_']    = [True, True, True, True, False]
+	layer_dict['foldname'] = 'deeper'
+	return layer_dict
+
+def even_deeper_alex():
+	layer_dict = {}
+	layer_dict['fsize_']   = [7, 5, 3, 3, 3, 3]
+	layer_dict['nout_']    = [64, 112, 192, 192, 320, 512]
+	layer_dict['stride_']  = [1, 1, 1, 1, 1, 1]
+	layer_dict['group_']   = [1, 1, 1, 1, 1, 1]
+	layer_dict['pool_']    = [True, True, True, True, True, False]
+	layer_dict['foldname'] = 'even_deeper'
+	return layer_dict
 
 def skinny_alex():
 	layer_dict = {}
@@ -525,17 +546,27 @@ if __name__ == '__main__':
     #    print
     #print 'Evaluation complete.'
 
-    layer_dict = skinny_alex()
-    args.snapshot_dir = './'+layer_dict['foldname']+'/snapshot'
-    train_net(args, layer_dict)
+   # layer_dict = skinny_alex()
+   # args.snapshot_dir = './'+layer_dict['foldname']+'/snapshot'
+   # train_net(args, layer_dict)
 
-    print '\nTraining complete. Evaluating...\n'
-    for split in ('train', 'val', 'test'):
-        eval_net(split, layer_dict)
-        print
-    print 'Evaluation complete.'
+   # print '\nTraining complete. Evaluating...\n'
+   # for split in ('train', 'val', 'test'):
+   #     eval_net(split, layer_dict)
+   #     print
+   # print 'Evaluation complete.'
 
-    layer_dict = skinny_fat_alex()
+   # layer_dict = skinny_fat_alex()
+   # args.snapshot_dir = './'+layer_dict['foldname']+'/snapshot'
+   # train_net(args, layer_dict)
+
+   # print '\nTraining complete. Evaluating...\n'
+   # for split in ('train', 'val', 'test'):
+   #     eval_net(split, layer_dict)
+   #     print
+   # print 'Evaluation complete.'
+
+    layer_dict = even_deeper_alex()
     args.snapshot_dir = './'+layer_dict['foldname']+'/snapshot'
     train_net(args, layer_dict)
 
