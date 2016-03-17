@@ -25,6 +25,7 @@ weight_param = dict(lr_mult=1, decay_mult=1)
 bias_param = dict(lr_mult=2, decay_mult=0)
 learned_param = [weight_param, bias_param]
 frozen_param = [dict(lr_mult=0)] * 2
+batch_norm_param = [dict(lr_mult=0)] * 3
 
 zero_filler = dict(type='constant', value=0)
 msra_filler = dict(type='msra')
@@ -124,6 +125,16 @@ def too_deep_alex():
 	layer_dict['group_']   = [1, 1, 1, 1, 1, 1, 1]
 	layer_dict['pool_']    = [True, True, True, True, True, True, False]
 	layer_dict['foldname'] = 'too_deep'
+	return layer_dict
+
+def different_deeper_alex():
+        layer_dict = {}
+        layer_dict['fsize_']   = [7, 5, 3, 3, 3, 3]
+        layer_dict['nout_']    = [64, 112, 152, 192, 256, 320]
+	layer_dict['stride_']  = [1, 1, 1, 1, 1, 1]
+	layer_dict['group_']   = [1, 1, 1, 1, 1, 1]
+	layer_dict['pool_']    = [True, True, True, True, True, False]
+	layer_dict['foldname'] = 'diff_deeper'
 	return layer_dict
 
 def skinny_alex():
@@ -288,6 +299,7 @@ def conv_relu(bottom, ks, nout, stride=1, pad=0, group=1,
         num_output=nout, pad=pad, group=group, param=param,
         weight_filler=weight_filler, bias_filler=bias_filler,
         **engine)
+    norm = layers.BatchNorm(conv, param=batch_norm_param)
     return conv, layers.ReLU(conv, in_place=True)
 
 
@@ -586,7 +598,7 @@ if __name__ == '__main__':
     #    print
     #print 'Evaluation complete.'
 
-    layer_dict = too_deep_alex()
+    layer_dict = even_deeper_alex()
     args.snapshot_dir = './'+layer_dict['foldname']+'/snapshot'
     train_net(args, layer_dict)
 
